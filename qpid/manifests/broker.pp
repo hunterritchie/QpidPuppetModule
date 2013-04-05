@@ -1,42 +1,37 @@
 
 define qpid::broker (
   $url = $title, 
-  $serviceName = 'qpidd',
+  $service_name = 'qpidd',
 ) {
 
   $addr = url_addr($url)
   $port = url_port($url)
 
-  package { 'qpid-cpp-server':
-    ensure      => installed,
-  }
+  $config = "/etc/qpidd/${service_name}/qpidd.conf"
 
-  $config = "/etc/qpidd/${serviceName}/qpidd.conf"
+  broker { "$url": service_name => $service_name }
 
-  file { "/etc/init.d/${serviceName}":
+  file { "/etc/init.d/${service_name}":
     ensure      => present,
     mode        => 0755,
     content     => template('qpid/init.sh.erb'),
+    require     => Package['qpid-cpp-server']
   }
 
-  file { "/etc/qpidd":
+  file { "/etc/qpidd/${service_name}":
     ensure      => directory,
+    recurse     => true,
   }
 
-  file { "/etc/qpidd/${serviceName}":
-    ensure      => directory,
-    require     => File['/etc/qpidd'],
-  }
-
-  file { "/etc/qpidd/${serviceName}/qpidd.conf":
+  file { "/etc/qpidd/${service_name}/qpidd.conf":
     ensure      => present,
     content     => template('qpid/qpidd.conf.erb'),
-    require     => File["/etc/qpidd/${serviceName}"],
+    require     => File["/etc/qpidd/${service_name}"],
   }
 
-  service { "${serviceName}":
+  service { "${service_name}":
     ensure      => running,
-    require     => [ File["/etc/init.d/${serviceName}"], File["/etc/qpidd/${serviceName}/qpidd.conf"] ],
+    require     => [ File["/etc/init.d/${service_name}"], File["/etc/qpidd/${service_name}/qpidd.conf"] ],
   }
 
 }

@@ -109,16 +109,6 @@ module Puppet
     newparam(:shared_msg_group) do
     end
 
-    autorequire(:service) do
-      [ "qpidd" ]
-      #[ "qpidd_#{namevar}" ]
-    end
-
-    autorequire(:file) do
-      [ "/etc/init.d/qpidd" ]
-      #[ "/etc/init.d/qpidd_#{namevar}" ]
-    end
-
     autorequire(:broker) do
       [ "#{@provider.resource[:url]}" ]
     end

@@ -1,7 +1,7 @@
 
 module Puppet
 
-  newtype(:binding) do
+  newtype(:queue_route) do
     @doc = "the custom type for qpidd creates the connection and qmf agent"
     ensurable do
       defaultvalues
@@ -15,20 +15,33 @@ module Puppet
     newparam(:url) do
     end
 
+    newparam(:link) do
+    end
+
+    newparam(:src_queue) do
+    end
+
+    newparam(:dst_exch) do
+    end
+
+    newparam(:sync) do
+    end
+
     autorequire(:broker) do
       [ "#{@provider.resource[:url]}" ]
     end
 
+    autorequire(:link) do
+      [ "#{@provider.resource[:link]}" ]
+    end
+
     autorequire(:exchange) do
-      name_ary = value(:name).split(':')
-      [ "#{name_ary[0]}" ]
+      [ "#{@provider.resource[:exchange]}" ]
     end
 
     autorequire(:queue) do
-      name_ary = value(:name).split(':')
-      [ "#{name_ary[1]}" ]
+      [ "#{@provider.resource[:queue]}" ]
     end
-
 
   end
 

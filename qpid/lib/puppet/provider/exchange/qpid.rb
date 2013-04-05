@@ -22,8 +22,6 @@ Puppet::Type.type(:exchange).provide(:qpid) do
       options['qpid.msg_sequence'] = @resource[:msg_sequence] if @resource[:msg_sequence]
       options['qpid.ive'] = @resource[:ive] if @resource[:ive]
 
-      puts("create exchange #{@resource[:name]}");
-      puts("\twith options = #{options}")
       @broker.add_exchange(@resource[:type], @resource[:name], options);
     rescue
     end
@@ -58,7 +56,6 @@ Puppet::Type.type(:exchange).provide(:qpid) do
     end
 
     begin
-      puts("delete exchange #{@resource[:name]}");
       @broker.delete_exchange(@resource[:name]);
     rescue
     end
@@ -78,31 +75,6 @@ Puppet::Type.type(:exchange).provide(:qpid) do
       @broker = agent.broker;
     end
   end
-
-=begin
-  def self.setBroker(url)
-    con = Qpid::Messaging::Connection.new(:url=>url);
-    con.open;
-    agent = Qpid::Management::BrokerAgent.new(con);
-    @broker = agent.broker;
-  end
-
-
-  def self.prefetch(resources)
-    @@resource_list = resources
-    resources.each do |name, resource|
-      #puts("PREFETCH FOR #{name} @ #{resource.value(:url)}")
-      broker = setBroker(resource.value(:url))
-      exchange = broker.exchange(name)
-      unless exchange.nil?
-        exchange.content['_values'].each do |arg, val|
-          #puts("ARG = #{arg} \t\t\t: VAL = #{val}")
-          ##resource[arg.to_sym] = val if resource.respond_to?(arg.to_sym)
-        end
-      end
-    end
-  end
-=end
 
 end
 

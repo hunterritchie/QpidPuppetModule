@@ -1,5 +1,5 @@
 
 qpid::broker { 'localhost:20000':
-  serviceName => 'george',
+  service_name => 'george',
 }
 

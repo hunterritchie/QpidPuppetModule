@@ -33,8 +33,6 @@ Puppet::Type.type(:queue).provide(:qpid) do
       options['qpid.group_header_key'] = @resource[:group_header_key] if @resource[:group_header_key]
       options['qpid.shared_msg_group'] = @resource[:shared_msg_group] if @resource[:shared_msg_group]
 
-      puts("queue create options = #{options}")
-      puts("create queue #{@resource[:name]}");
       @broker.add_queue(@resource[:name], options);
     rescue
     end
@@ -44,7 +42,6 @@ Puppet::Type.type(:queue).provide(:qpid) do
   def destroy
     setBroker
     begin
-      puts("delete queue #{@resource[:name]}");
       @broker.delete_queue(@resource[:name]);
     rescue
     end
@@ -64,32 +61,6 @@ Puppet::Type.type(:queue).provide(:qpid) do
       @broker = agent.broker;
     end
   end
-
-=begin
-  def self.setBroker(url)
-    if @broker.nil?
-      con = Qpid::Messaging::Connection.new(:url=>url);
-      con.open;
-      agent = Qpid::Management::BrokerAgent.new(con);
-      @broker = agent.broker;
-    end
-  end
-
-  def self.prefetch(resources)
-    @@resource_list = resources
-    resources.each do |name, resource|
-      #puts("PREFETCH FOR #{name} @ #{resource.value(:url)}")
-      broker = setBroker(resource.value(:url))
-      queue = broker.queue(name)
-      unless queue.nil?
-        queue.content['_values'].each do |arg, val|
-          #puts("ARG = #{arg} \t\t\t: VAL = #{val}")
-          ##resource[arg.to_sym] = val if resource.respond_to?(arg.to_sym)
-        end
-      end
-    end
-  end
-=end
 
 end
 

@@ -68,16 +68,6 @@ module Puppet
     newparam(:ive) do
     end
 
-    autorequire(:service) do
-      [ "qpidd" ]
-      #[ "#{serviceName}" ]
-    end
-
-    autorequire(:file) do
-      [ "/etc/init.d/qpidd" ]
-      #[ "/etc/init.d/#{serviceName}" ]
-    end
-
     autorequire(:broker) do
       [ "#{@provider.resource[:url]}" ]
     end
