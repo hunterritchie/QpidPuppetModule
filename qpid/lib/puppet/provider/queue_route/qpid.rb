@@ -19,20 +19,27 @@ Puppet::Type.type(:queue_route).provide(:qpid) do
 
   def destroy
     setBroker
-    @broker.delete_bridge(@resource[:name])
+    begin
+      @broker.delete_bridge(@resource[:name])
+    rescue
+    end
   end
 
   def exists?
     setBroker
-    return true unless @broker.bridge(@resource[:name]).nil?
+    @broker.bridges.each do |bridge|
+      if @resource[:name] == bridge['name']
+        return true
+      end
+    end
     false
   end
 
   def setBroker
-    con = Qpid::Messaging::Connection.new(:url=>@resource[:url]);
-    con.open;
-    agent = Qpid::Management::BrokerAgent.new(con);
-    @broker = agent.broker;
+    con = Qpid::Messaging::Connection.new(:url=>@resource[:url])
+    con.open
+    agent = Qpid::Management::BrokerAgent.new(con)
+    @broker = agent.broker
   end
 
 end

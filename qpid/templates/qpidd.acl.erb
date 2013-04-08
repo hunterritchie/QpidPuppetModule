@@ -16,23 +16,8 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-# Configuration file for qpidd. Entries are of the form: 
-#   name=value 
 #
-# (Note: no spaces on either side of '='). Using default settings:
-# "qpidd --help" or "man qpidd" for more details.
-#
-# If you are using DIGEST-MD5 for client connections to 
-# brokers, add to this file the following line:
-#
-#   auth=yes
-# 
-# If you are using GSSAPI for client connections to
-# brokers, add to this file the following two lines:
-#
-#   auth=yes
-#   realm=QPID
-#
-<%- @qpidd_conf.each do |line| -%>
-<%= line %>
+<%- @acls.each do |acl| -%>
+<%= acl %>
 <%- end -%>
+

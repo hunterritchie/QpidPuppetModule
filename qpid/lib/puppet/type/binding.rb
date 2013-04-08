@@ -3,10 +3,36 @@ module Puppet
 
   newtype(:binding) do
     @doc = "the custom type for qpidd creates the connection and qmf agent"
-    ensurable do
-      defaultvalues
-      defaultto :present
+
+    newproperty(:ensure) do
+      defaultto :insync
+      newvalue :insync do
+        @resource.provider.destroy
+        @resource.provider.create
+      end
+      newvalue :outofsync
+
+      def retrieve
+        if @resource[:url].is_a?(Array)
+          sync = :insync
+          @resource[:url].each { |url| sync = :outofsync if :outofsync == retrieve_binding(url) }
+          return sync
+        else
+          return retrieve_binding(@resource[:url])
+        end
+      end
+
+      def retrieve_binding(url)
+        broker = provider.setBroker(url)
+        exchange, queue, key = @resource[:name].split(':')
+        id = "org.apache.qpid.broker:exchange:#{exchange},org.apache.qpid.broker:queue:#{queue},#{key}"
+        binding = broker[url].binding(id)
+
+        return :outofsync if binding.nil?
+        :insync
+      end
     end
+
 
     newparam(:name) do
       isnamevar
@@ -16,7 +42,11 @@ module Puppet
     end
 
     autorequire(:broker) do
-      [ "#{@provider.resource[:url]}" ]
+      if @provider.resource[:url].is_a?(Array)
+        @provider.resource[:url]
+      else
+        [ "#{@provider.resource[:url]}" ]
+      end
     end
 
     autorequire(:exchange) do

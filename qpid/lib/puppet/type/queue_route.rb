@@ -36,11 +36,11 @@ module Puppet
     end
 
     autorequire(:exchange) do
-      [ "#{@provider.resource[:exchange]}" ]
+      [ "#{@provider.resource[:dst_exch]}" ]
     end
 
     autorequire(:queue) do
-      [ "#{@provider.resource[:queue]}" ]
+      [ "#{@provider.resource[:src_queue]}" ]
     end
 
   end

@@ -25,6 +25,10 @@ module Puppet
       [ "/etc/qpidd/#{@provider.resource[:service_name]}/qpidd.conf" ]
     end
 
+    autorequire(:file) do
+      [ "/etc/qpidd/#{@provider.resource[:service_name]}/qpidd.acl" ]
+    end
+
     autorequire(:service) do
       [ "#{@provider.resource[:service_name]}" ]
     end

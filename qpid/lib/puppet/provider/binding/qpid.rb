@@ -9,35 +9,64 @@ Puppet::Type.type(:binding).provide(:qpid) do
   attr_accessor :key
 
   def create
-    setBroker
-    @broker.add_binding(@exchange, @queue, @key);
+    if @resource[:url].is_a?(Array)
+      @resource[:url].each { |url| create_binding(url) }
+    else
+      create_binding(@resource[:url])
+    end
   end
+
+  def create_binding(url)
+    setBroker(url)
+    @broker[url].add_binding(@exchange, @queue, @key);
+  end
+
 
   def destroy
-    setBroker
-    @broker.delete_binding(@exchange, @queue, @key);
+    if @resource[:url].is_a?(Array)
+      @resource[:url].each { |url| destroy_binding(url) }
+    else
+      destroy_binding(@resource[:url])
+    end
   end
 
+  def destroy_binding(url)
+    setBroker(url)
+    @broker[url].delete_binding(@exchange, @queue, @key);
+  end
+
+
   def exists?
-    setBroker
+    if @resource[:url].is_a?(Array)
+      exists = true
+      @resource[:url].each { |url| exists = false if false == binding_exists?(url) }
+      exists
+    else
+      binding_exists?(@resource[:url])
+    end
+  end
+
+  def binding_exists?(url)
+    setBroker(url)
     id = "org.apache.qpid.broker:exchange:#{exchange},org.apache.qpid.broker:queue:#{queue},#{key}"
     return true unless @broker.binding(id).nil?
     false
   end
 
   def setValues
-    name_ary = @resource[:name].split(':')
-    @exchange = name_ary[0]
-    @queue = name_ary[1]
-    @key = name_ary[2] || ''
+    @exchange, @queue, @key = @resource[:name].split(':')
   end
 
-  def setBroker
+  def setBroker(url=@resource[:url])
     setValues
-    con = Qpid::Messaging::Connection.new(:url=>@resource[:url]);
-    con.open;
-    agent = Qpid::Management::BrokerAgent.new(con);
-    @broker = agent.broker;
+    @broker = {} if @broker.nil?
+    if @broker[url].nil?
+      con = Qpid::Messaging::Connection.new(:url=>url);
+      con.open;
+      agent = Qpid::Management::BrokerAgent.new(con);
+      @broker[url] = agent.broker;
+    end
+    @broker
   end
 
 end

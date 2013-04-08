@@ -6,7 +6,15 @@ Puppet::Type.type(:queue).provide(:qpid) do
   attr_accessor :broker
 
   def create
-    setBroker
+    if @resource[:url].is_a?(Array)
+      @resource[:url].each { |url| create_queue(url) }
+    else
+      create_queue(@resource[:url])
+    end
+  end
+
+  def create_queue(url)
+    setBroker(url)
     begin
       options = {}
       # group 1
@@ -33,33 +41,53 @@ Puppet::Type.type(:queue).provide(:qpid) do
       options['qpid.group_header_key'] = @resource[:group_header_key] if @resource[:group_header_key]
       options['qpid.shared_msg_group'] = @resource[:shared_msg_group] if @resource[:shared_msg_group]
 
-      @broker.add_queue(@resource[:name], options);
+      @broker[url].add_queue(@resource[:name], options);
     rescue
     end
 
   end
 
   def destroy
-    setBroker
+    if @resource[:url].is_a?(Array)
+      @resource[:url].each { |url| destroy_queue(url) }
+    else
+      destroy_queue(@resource[:url])
+    end
+  end
+
+  def destroy_queue(url)
+    setBroker(url)
     begin
-      @broker.delete_queue(@resource[:name]);
+      @broker[url].delete_queue(@resource[:name]);
     rescue
     end
   end
 
   def exists?
-    setBroker
-    return true unless @broker.queue(@resource[:name]).nil?
+    if @resource[:url].is_a?(Array)
+      exists = true
+      @resource[:url].each { |url| exists = false if false == queue_exists?(url) }
+      exists
+    else
+      queue_exists?(@resource[:url])
+    end
+  end
+
+  def queue_exists?(url)
+    setBroker(url)
+    return true unless @broker[url].queue(@resource[:name]).nil?
     false
   end
 
-  def setBroker
-    if broker.nil?
-      con = Qpid::Messaging::Connection.new(:url=>@resource[:url]);
+  def setBroker(url=@resource[:url])
+    @broker = {} if @broker.nil?
+    if @broker[url].nil?
+      con = Qpid::Messaging::Connection.new(:url=>url);
       con.open;
       agent = Qpid::Management::BrokerAgent.new(con);
-      @broker = agent.broker;
+      @broker[url] = agent.broker;
     end
+    @broker
   end
 
 end

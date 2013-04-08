@@ -1,7 +1,7 @@
 
 module Puppet
 
-  newtype(:exchange_route) do
+  newtype(:dynamic_route) do
     @doc = "the custom type for qpidd creates the connection and qmf agent"
     ensurable do
       defaultvalues

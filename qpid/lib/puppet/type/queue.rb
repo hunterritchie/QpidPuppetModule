@@ -15,11 +15,20 @@ module Puppet
       newvalue :outofsync
 
       def retrieve
-        broker = provider.setBroker
-        queue = broker.queue(@resource[:name])
+        if @resource[:url].is_a?(Array)
+          sync = :insync
+          @resource[:url].each { |url| sync = :outofsync if :outofsync == retrieve_queue(url) }
+          return sync
+        else
+          return retrieve_queue(@resource[:url])
+        end
+      end
+
+      def retrieve_queue(url)
+        broker = provider.setBroker(url)
+        queue = broker[url].queue(@resource[:name])
 
         return :outofsync if queue.nil?
-
 
       # group 1
         auto_delete = @resource[:auto_delete].nil? ? false : @resource[:auto_delete]
@@ -109,8 +118,13 @@ module Puppet
     newparam(:shared_msg_group) do
     end
 
+
     autorequire(:broker) do
-      [ "#{@provider.resource[:url]}" ]
+      if @provider.resource[:url].is_a?(Array)
+        @provider.resource[:url]
+      else
+        [ "#{@provider.resource[:url]}" ]
+      end
     end
 
     autorequire(:exchange) do

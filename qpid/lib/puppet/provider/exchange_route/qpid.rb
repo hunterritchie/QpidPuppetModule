@@ -24,7 +24,11 @@ Puppet::Type.type(:exchange_route).provide(:qpid) do
 
   def exists?
     setBroker
-    return true unless @broker.bridge(@resource[:name]).nil?
+    @broker.bridges.each do |bridge|
+      if @resource[:name] == bridge['name']
+        return true
+      end
+    end
     false
   end
 

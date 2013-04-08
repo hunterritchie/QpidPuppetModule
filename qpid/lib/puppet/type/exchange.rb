@@ -13,8 +13,18 @@ module Puppet
       newvalue :outofsync
 
       def retrieve
-        broker = provider.setBroker
-        exchange = broker.exchange(@resource[:name])
+        if @resource[:url].is_a?(Array)
+          sync = :insync
+          @resource[:url].each { |url| sync = :outofsync if :outofsync == retrieve_exchange(url) }
+          return sync
+        else
+          return retrieve_exchange(@resource[:url])
+        end
+      end
+
+      def retrieve_exchange(url)
+        broker = provider.setBroker(url)
+        exchange = broker[url].exchange(@resource[:name])
 
         return :outofsync if exchange.nil?
         return :outofsync unless exchange.content['_values']['type'] == @resource[:type]
@@ -69,7 +79,11 @@ module Puppet
     end
 
     autorequire(:broker) do
-      [ "#{@provider.resource[:url]}" ]
+      if @provider.resource[:url].is_a?(Array)
+        @provider.resource[:url]
+      else
+        [ "#{@provider.resource[:url]}" ]
+      end
     end
 
     autorequire(:exchange) do

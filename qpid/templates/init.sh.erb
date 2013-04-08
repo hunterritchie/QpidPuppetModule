@@ -67,7 +67,7 @@ fi
 start() {
         [[ $QPID_DATA_DIR ]] || QPID_DATA_DIR=/var/lib/qpidd/$servicename
         echo -n $"Starting Qpid AMQP daemon: "
-	daemon --pidfile $pidfile --check $servicename --user qpidd /usr/sbin/$prog -p $port --config <%= @config %> --data-dir $QPID_DATA_DIR --daemon $QPIDD_OPTIONS
+	daemon --pidfile $pidfile --check $servicename --user qpidd /usr/sbin/$prog -p $port --config <%= @config %> --acl-file <%= @acl_file %> --data-dir $QPID_DATA_DIR --daemon $QPIDD_OPTIONS
 	RETVAL=$?
 	echo
 	[ $RETVAL = 0 ] && touch $lockfile
