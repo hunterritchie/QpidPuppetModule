@@ -24,6 +24,7 @@ qpid::broker { 'localhost:20000':
 exchange { 'exch_one': 
   type          => 'direct',
   url           => [ 'localhost:5672', 'localhost:20000'],
+  durable       => true,
 }
 
 queue { 'queue_one': 

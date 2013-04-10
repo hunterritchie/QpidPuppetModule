@@ -1,41 +1,39 @@
 require 'qpid_messaging'
 require 'qpid_management'
+require File.dirname(__FILE__) + '/../../common/functions'
+
 
 Puppet::Type.type(:dynamic_route).provide(:qpid) do
 
+  include CreateDestroyExists
+
   attr_accessor :broker
 
-  def create
-    setBroker
+  def _create(url)
+    @broker = Qpid::setBroker(url)
 
     options = {}
     options[:link] = @resource[:link]
     options[:exchange] = @resource[:exchange]
     options[:sync] = @resource[:sync]
 
-    @broker.add_dynamic_route(@resource[:name], options)
+    @broker[url].add_dynamic_route(@resource[:name], options)
   end
 
-  def destroy
-    setBroker
-    @broker.delete_bridge(@resource[:name])
+  def _destroy(url)
+    @broker = Qpid::setBroker(url)
+    @broker[url].delete_bridge(@resource[:name])
   end
 
-  def exists?
-    setBroker
-    @broker.bridges.each do |bridge|
+
+  def _exists?(url)
+    @broker = Qpid::setBroker(url)
+    @broker[url].bridges.each do |bridge|
       if @resource[:name] == bridge['name']
         return true
       end
     end
     false
-  end
-
-  def setBroker
-    con = Qpid::Messaging::Connection.new(:url=>@resource[:url]);
-    con.open;
-    agent = Qpid::Management::BrokerAgent.new(con);
-    @broker = agent.broker;
   end
 
 end

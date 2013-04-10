@@ -1,20 +1,16 @@
 require 'qpid_messaging'
 require 'qpid_management'
+require File.dirname(__FILE__) + '/../../common/functions'
+
 
 Puppet::Type.type(:exchange).provide(:qpid) do
 
+  include CreateDestroyExists
+
   attr_accessor :broker
 
-  def create
-    if @resource[:url].is_a?(Array)
-      @resource[:url].each { |url| create_exchange(url) }
-    else
-      create_exchange(@resource[:url])
-    end
-  end
-
-  def create_exchange(url)
-    setBroker(url)
+  def _create(url)
+    @broker = Qpid::setBroker(url)
     begin
       options = {}
       # group 1
@@ -35,16 +31,8 @@ Puppet::Type.type(:exchange).provide(:qpid) do
     end
   end
 
-  def destroy
-    if @resource[:url].is_a?(Array)
-      @resource[:url].each { |url| destroy_exchange(url) }
-    else
-      destroy_exchange(@resource[:url])
-    end
-  end
-
-  def destroy_exchange(url)
-    setBroker(url)
+  def _destroy(url)
+    @broker = Qpid::setBroker(url)
     # delete other exchanges that use this exchange as an alternate-exchange
     qpid_exchange_name = "org.apache.qpid.broker:exchange:#{@resource[:name]}"
 
@@ -76,31 +64,10 @@ Puppet::Type.type(:exchange).provide(:qpid) do
     end
   end
 
-  def exists?
-    if @resource[:url].is_a?(Array)
-      exists = true
-      @resource[:url].each { |url| exists = false if false == exchange_exists?(url) }
-      exists
-    else
-      exchange_exists?(@resource[:url])
-    end
-  end
-
-  def exchange_exists?(url)
-    setBroker(url)
+  def _exists?(url)
+    @broker = Qpid::setBroker(url)
     return true unless @broker[url].exchange(@resource[:name]).nil?
     false
-  end
-
-  def setBroker(url=@resource[:url])
-    @broker = {} if @broker.nil?
-    if @broker[url].nil?
-      con = Qpid::Messaging::Connection.new(:url=>url);
-      con.open;
-      agent = Qpid::Management::BrokerAgent.new(con);
-      @broker[url] = agent.broker;
-    end
-    @broker
   end
 
 end

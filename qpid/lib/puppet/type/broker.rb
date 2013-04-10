@@ -2,14 +2,16 @@
 module Puppet
 
   newtype(:broker) do
-    @doc = "the custom type for qpidd creates the connection and qmf agent"
+    @doc = "Creates a qpidd broker to ensure dependencies are met."
 
     newparam(:url) do
+      desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>."
       defaultto 'localhost:5672'
       isnamevar
     end
 
     newparam(:service_name) do
+      desc "The name of the broker as a service, maps the init.d, qpidd.conf, aand qpidd.acl files."
     end
 
 

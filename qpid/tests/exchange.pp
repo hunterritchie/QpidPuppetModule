@@ -1,17 +1,25 @@
 
 include qpid::gems
 
-qpid::broker { 'localhost:5672': }
+$url = 'localhost:5672'
+
+package { 'qpid-cpp-server':
+  ensure        => present,
+}
+
+qpid::broker { "${url}": }
 
 exchange { 'my_ex': 
   type          => 'direct',
+  url           => "${url}",
 }
 exchange { 'my_ex2': 
   type          => 'fanout',
+  url           => "${url}",
   alt_exch      => 'my_ex',
   durable       => true,
-  replicate     => true,
-  msg_sequence  => 1,
+  replicate     => 'none',
+  msg_sequence  => false,
   ive           => true,
 }
 

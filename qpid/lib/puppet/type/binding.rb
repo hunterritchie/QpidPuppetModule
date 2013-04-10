@@ -1,8 +1,9 @@
+require File.dirname(__FILE__) + '/../common/functions'
 
 module Puppet
 
   newtype(:binding) do
-    @doc = "the custom type for qpidd creates the connection and qmf agent"
+    @doc = "Create a binding from a queue to an exchange on a qpidd broker."
 
     newproperty(:ensure) do
       defaultto :insync
@@ -12,18 +13,10 @@ module Puppet
       end
       newvalue :outofsync
 
-      def retrieve
-        if @resource[:url].is_a?(Array)
-          sync = :insync
-          @resource[:url].each { |url| sync = :outofsync if :outofsync == retrieve_binding(url) }
-          return sync
-        else
-          return retrieve_binding(@resource[:url])
-        end
-      end
+      include Retrieve
 
-      def retrieve_binding(url)
-        broker = provider.setBroker(url)
+      def _retrieve(url)
+        broker = Qpid::setBroker(url)
         exchange, queue, key = @resource[:name].split(':')
         id = "org.apache.qpid.broker:exchange:#{exchange},org.apache.qpid.broker:queue:#{queue},#{key}"
         binding = broker[url].binding(id)
@@ -35,10 +28,13 @@ module Puppet
 
 
     newparam(:name) do
+      desc "The binding name is in the format of <exchange>:<queue>:<key>.  The key may be empty."
       isnamevar
     end
 
     newparam(:url) do
+      desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      defaultto 'localhost:5672'
     end
 
     autorequire(:broker) do
@@ -61,6 +57,5 @@ module Puppet
 
 
   end
-
 end
 

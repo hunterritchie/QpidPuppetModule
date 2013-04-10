@@ -1,6 +1,11 @@
 
 include qpid::gems
 
+
+package { 'qpid-cpp-server':
+  ensure        => present,
+}
+
 qpid::broker { 'localhost:5672': }
 
 exchange { 'exch_one': 
