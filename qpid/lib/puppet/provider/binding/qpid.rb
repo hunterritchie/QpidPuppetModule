@@ -14,14 +14,14 @@ Puppet::Type.type(:binding).provide(:qpid) do
   def _create(url)
     setValues
     @broker = Qpid::setBroker(url)
-    @broker[url].add_binding(@exchange, @queue, @key);
+    @broker.add_binding(@exchange, @queue, @key);
   end
 
 
   def _destroy(url)
     setValues
     @broker = Qpid::setBroker(url)
-    @broker[url].delete_binding(@exchange, @queue, @key);
+    @broker.delete_binding(@exchange, @queue, @key);
   end
 
 

@@ -10,14 +10,12 @@ package { 'qpid-cpp-server':
 qpid::broker { "${url}": }
 
 
-exchange { 'my_ex':
+exchange { "my_ex@${url}":
   type            => 'fanout',
-  url             => "${url}",
 }
 
-queue { 'my_queue': 
+queue { "my_queue@${url}": 
   auto_delete     => true,
-  url             => "${url}",
   
   alt_exch        => 'my_ex',
   durable         => true,

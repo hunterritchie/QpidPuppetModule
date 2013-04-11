@@ -5,6 +5,10 @@ module Puppet
   newtype(:dynamic_route) do
     @doc = "Creates a dynamic route between exchanges, using the specified link."
 
+    def self.title_patterns
+      [ [ /(.*)@(.*)/m, [ [:name, lambda{|x| x}], [:url, lambda{|x| x}]  ] ] ]
+    end
+
     newproperty(:ensure) do
       defaultto :insync
 
@@ -19,7 +23,7 @@ module Puppet
 
       def _retrieve(url)
         broker = Qpid::setBroker(url)
-        broker[url].bridges.each do |bridge|
+        broker.bridges.each do |bridge|
           if @resource[:name] == bridge['name']
             return :outofsync unless bridge['dest'] == @resource[:exchange] 
             return :outofsync unless bridge['src'] == @resource[:exchange] 
@@ -41,6 +45,7 @@ module Puppet
 
     newparam(:url) do
       desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      isnamevar
       defaultto 'localhost:5672'
     end
 
@@ -61,11 +66,11 @@ module Puppet
     end
 
     autorequire(:link) do
-      [ "#{@provider.resource[:link]}" ]
+      [ "#{@provider.resource[:link]}@#{@provider.resource[:url]}" ]
     end
 
     autorequire(:exchange) do
-      [ "#{@provider.resource[:exchange]}" ]
+      [ "#{@provider.resource[:exchange]}@#{provider.resource[:url]}" ]
     end
 
   end

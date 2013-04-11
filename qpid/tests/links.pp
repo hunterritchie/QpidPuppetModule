@@ -9,61 +9,52 @@ package { 'qpid-cpp-server':
 }
 
 
-qpid::broker { 'localhost:5672': 
+$url1 = 'localhost:20001'
+$url2 = 'localhost:20002'
+
+qpid::broker { "$url1": 
   service_name  => 'broker_one',
   acls          => [ 'acl allow all all' ],
   qpidd_conf    => [ 'auth=no' ],
 }
 
-qpid::broker { 'localhost:20000': 
+qpid::broker { "$url2": 
   service_name  => 'broker_two',
   acls          => [ 'acl allow all all' ],
   qpidd_conf    => [ 'auth=no' ],
 }
 
-exchange { 'exch_one': 
+exchange { "exch_one@$url1": 
   type          => 'direct',
-  url           => [ 'localhost:5672', 'localhost:20000'],
   durable       => true,
 }
 
-queue { 'queue_one': 
-  url           => 'localhost:5672',
-}
+queue { "queue_one@$url1": }
 
-binding { 'exch_one:queue_one': 
-  url           => 'localhost:5672',
-}
+binding { "exch_one:queue_one@$url1": }
 
-exchange { 'exch_two': 
+exchange { "exch_two@$url2": 
   type          => 'direct',
-  url           => 'localhost:20000',
 }
 
-queue { 'queue_two': 
-  url           => 'localhost:20000',
-}
+queue { "queue_two@$url2": }
 
-binding { 'exch_two:queue_two': 
-  url           => 'localhost:20000',
-}
+binding { "exch_two:queue_two@$url2": }
 
 
 # links and bridges
-link { 'link_one':
-  url           => 'localhost:5672',
+link { "link_one@$url1":
   remote_host   => 'localhost',
   remote_port   => '20000',
 }
 
-link { 'link_two':
-  url           => 'localhost:20000',
+link { "link_two@$url2":
   remote_host   => 'localhost',
   remote_port   => '5672',
 }
 
 
-queue_route { 'route1':
+queue_route { "route1@$url1":
   link          => 'link_one',
   src_queue     => 'queue_two',
   dst_exch      => 'exch_one',
@@ -71,15 +62,14 @@ queue_route { 'route1':
 }
 
 
-exchange_route { 'route2':
-  url           => 'localhost:20000',
+exchange_route { "route2@$url2":
   link          => 'link_two',
   exchange      => 'exch_one',
   key           => 'my_topic',
   sync          => 1,
 }
 
-dynamic_route { 'route3':
+dynamic_route { "route3@$url1":
   link          => 'link_one',
   exchange      => 'exch_one',
   sync          => 1,

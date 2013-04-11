@@ -26,7 +26,7 @@ Puppet::Type.type(:exchange).provide(:qpid) do
       options['qpid.msg_sequence'] = @resource[:msg_sequence] if @resource[:msg_sequence]
       options['qpid.ive'] = @resource[:ive] if @resource[:ive]
 
-      @broker[url].add_exchange(@resource[:type], @resource[:name], options);
+      @broker.add_exchange(@resource[:type], @resource[:name], options);
     rescue
     end
   end
@@ -37,21 +37,21 @@ Puppet::Type.type(:exchange).provide(:qpid) do
     qpid_exchange_name = "org.apache.qpid.broker:exchange:#{@resource[:name]}"
 
     # remove any exchanges *this is alternate to
-    @broker[url].exchanges.each do |ex|
+    @broker.exchanges.each do |ex|
       if @resource[:name] == ex['altExchange']
         begin
-          @broker[url].delete_exchange(ex['name'])
+          @broker.delete_exchange(ex['name'])
         rescue
         end
       end
     end
 
     # remove any queues *this is alternate to
-    @broker[url].queues.each do |q|
+    @broker.queues.each do |q|
       unless q['altExchange'].nil?
         if @resource[:name] == q['altExchange']
           begin
-            @broker[url].delete_queue(q['name'])
+            @broker.delete_queue(q['name'])
           rescue
           end
         end
@@ -59,14 +59,14 @@ Puppet::Type.type(:exchange).provide(:qpid) do
     end
 
     begin
-      @broker[url].delete_exchange(@resource[:name]);
+      @broker.delete_exchange(@resource[:name]);
     rescue
     end
   end
 
   def _exists?(url)
     @broker = Qpid::setBroker(url)
-    return true unless @broker[url].exchange(@resource[:name]).nil?
+    return true unless @broker.exchange(@resource[:name]).nil?
     false
   end
 

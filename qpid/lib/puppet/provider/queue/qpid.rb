@@ -37,7 +37,7 @@ Puppet::Type.type(:queue).provide(:qpid) do
       options['qpid.group_header_key'] = @resource[:group_header_key] if @resource[:group_header_key]
       options['qpid.shared_msg_group'] = @resource[:shared_msg_group] if @resource[:shared_msg_group]
 
-      @broker[url].add_queue(@resource[:name], options);
+      @broker.add_queue(@resource[:name], options);
     rescue
     end
   end
@@ -45,14 +45,14 @@ Puppet::Type.type(:queue).provide(:qpid) do
   def _destroy(url)
     @broker = Qpid::setBroker(url)
     begin
-      @broker[url].delete_queue(@resource[:name]);
+      @broker.delete_queue(@resource[:name]);
     rescue
     end
   end
 
   def _exists?(url)
     @broker = Qpid::setBroker(url)
-    return true unless @broker[url].queue(@resource[:name]).nil?
+    return true unless @broker.queue(@resource[:name]).nil?
     false
   end
 

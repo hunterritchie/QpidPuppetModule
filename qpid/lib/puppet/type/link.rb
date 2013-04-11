@@ -5,6 +5,10 @@ module Puppet
   newtype(:link) do
     @doc = "Create a link between qpidd brokers."
 
+    def self.title_patterns
+      [ [ /(.*)@(.*)/m, [ [:name, lambda{|x| x}], [:url, lambda{|x| x}]  ] ] ]
+    end
+
     newproperty(:ensure) do
       defaultto :insync
 
@@ -19,7 +23,7 @@ module Puppet
 
       def _retrieve(url)
         broker = Qpid::setBroker(url)
-        link = broker[url].link(@resource[:name])
+        link = broker.link(@resource[:name])
         return :outofsync if link.nil?
         return :outofsync unless link['host'] == @resource[:remote_host]
         return :outofsync unless link['port'].to_s == @resource[:remote_port].to_s
@@ -37,6 +41,7 @@ module Puppet
 
     newparam(:url) do
       desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      isnamevar
       defaultto 'localhost:5672'
     end
 

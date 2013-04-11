@@ -3,8 +3,11 @@ require File.dirname(__FILE__) + '/../common/functions'
 module Puppet
 
   newtype(:queue_route) do
-     @doc = "Creates a queue route between source queue and destination exchange, using the specified link."
+    @doc = "Creates a queue route between source queue and destination exchange, using the specified link."
 
+    def self.title_patterns
+      [ [ /(.*)@(.*)/m, [ [:name, lambda{|x| x}], [:url, lambda{|x| x}]  ] ] ]
+    end
 
     newproperty(:ensure) do
       defaultto :insync
@@ -20,7 +23,7 @@ module Puppet
 
       def _retrieve(url)
         broker = Qpid::setBroker(url)
-        broker[url].bridges.each do |bridge|
+        broker.bridges.each do |bridge|
           if @resource[:name] == bridge['name']
             return :outofsync unless bridge['dest'] == @resource[:dst_exch]
             return :outofsync unless bridge['src'] == @resource[:src_queue]
@@ -42,6 +45,7 @@ module Puppet
 
     newparam(:url) do
       desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      isnamevar
       defaultto 'localhost:5672'
     end
 
@@ -66,15 +70,15 @@ module Puppet
     end
 
     autorequire(:link) do
-      [ "#{@provider.resource[:link]}" ]
+      [ "#{@provider.resource[:link]}@#{@provider.resource[:url]}" ]
     end
 
     autorequire(:exchange) do
-      [ "#{@provider.resource[:dst_exch]}" ]
+      [ "#{@provider.resource[:dst_exch]}@#{provider.resource[:url]}" ]
     end
 
     autorequire(:queue) do
-      [ "#{@provider.resource[:src_queue]}" ]
+      [ "#{@provider.resource[:src_queue]}@#{provider.resource[:url]}" ]
     end
 
   end

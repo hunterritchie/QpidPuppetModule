@@ -9,9 +9,8 @@ package { 'qpid-cpp-server':
 
 qpid::broker { "${url}": }
 
-exchange { 'my_ex': 
+exchange { "my_ex@${url}": 
   type          => 'direct',
-  url           => "${url}",
 }
 exchange { 'my_ex2': 
   type          => 'fanout',

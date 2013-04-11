@@ -6,25 +6,26 @@ package { 'qpid-cpp-server':
   ensure        => present,
 }
 
-qpid::broker { 'localhost:5672': }
+$url = 'localhost:5672'
+qpid::broker { "$url": }
 
-exchange { 'exch_one': 
+exchange { "exch_one@$url": 
   type          => 'direct',
 }
 
-exchange { 'exch_two': 
+exchange { "exch_two@$url": 
   type          => 'topic',
   alt_exch      => 'exch_one',
 }
 
 
-queue { 'queue_one': 
+queue { "queue_one@$url": 
 }
 
-queue { 'queue_two': 
+queue { "queue_two@$url": 
   alt_exch      => 'exch_one',
 }
 
-binding { 'exch_one:queue_one': }
-binding { 'exch_two:queue_two:topic.a': }
+binding { "exch_one:queue_one@$url": }
+binding { "exch_two:queue_two:topic.a@$url": }
 

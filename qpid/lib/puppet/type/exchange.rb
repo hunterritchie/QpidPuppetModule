@@ -5,6 +5,10 @@ module Puppet
   newtype(:exchange) do
     @doc = "Create an exchange on a qpidd broker."
 
+    def self.title_patterns
+      [ [ /(.*)@(.*)/m, [ [:name, lambda{|x| x}], [:url, lambda{|x| x}]  ] ] ]
+    end
+
     newproperty(:ensure) do
       defaultto :insync
       newvalue :insync do
@@ -17,7 +21,7 @@ module Puppet
 
       def _retrieve(url)
         broker = Qpid::setBroker(url)
-        exchange = broker[url].exchange(@resource[:name])
+        exchange = broker.exchange(@resource[:name])
 
         return :outofsync if exchange.nil?
         return :outofsync unless exchange.content['_values']['type'] == @resource[:type].to_s
@@ -46,6 +50,7 @@ module Puppet
 
     newparam(:url) do
       desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      isnamevar
       defaultto 'localhost:5672'
     end
 
@@ -94,7 +99,7 @@ module Puppet
 
     autorequire(:exchange) do
       unless @provider.resource[:alt_exch].nil? 
-        [ "#{@provider.resource[:alt_exch]}" ]
+        [ "#{@provider.resource[:alt_exch]}@#{@provider.resource[:url]}" ]
       end
     end
 

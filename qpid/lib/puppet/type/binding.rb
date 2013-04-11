@@ -4,6 +4,10 @@ module Puppet
 
   newtype(:binding) do
     @doc = "Create a binding from a queue to an exchange on a qpidd broker."
+    
+    def self.title_patterns
+      [ [ /(.*)@(.*)/m, [ [:name, lambda{|x| x}], [:url, lambda{|x| x}]  ] ] ]
+    end
 
     newproperty(:ensure) do
       defaultto :insync
@@ -19,7 +23,7 @@ module Puppet
         broker = Qpid::setBroker(url)
         exchange, queue, key = @resource[:name].split(':')
         id = "org.apache.qpid.broker:exchange:#{exchange},org.apache.qpid.broker:queue:#{queue},#{key}"
-        binding = broker[url].binding(id)
+        binding = broker.binding(id)
 
         return :outofsync if binding.nil?
         :insync
@@ -34,25 +38,22 @@ module Puppet
 
     newparam(:url) do
       desc "The url of the qpidd broker, in the format of <ipaddr>:<port> or <hostname>:<port>. An array of urls may be provided."
+      isnamevar
       defaultto 'localhost:5672'
     end
 
     autorequire(:broker) do
-      if @provider.resource[:url].is_a?(Array)
-        @provider.resource[:url]
-      else
-        [ "#{@provider.resource[:url]}" ]
-      end
+      [ "#{@provider.resource[:url]}" ]
     end
 
     autorequire(:exchange) do
       name_ary = value(:name).split(':')
-      [ "#{name_ary[0]}" ]
+      [ "#{name_ary[0]}@#{@provider.resource[:url]}" ]
     end
 
     autorequire(:queue) do
       name_ary = value(:name).split(':')
-      [ "#{name_ary[1]}" ]
+      [ "#{name_ary[1]}@#{@provider.resource[:url]}" ]
     end
 
 

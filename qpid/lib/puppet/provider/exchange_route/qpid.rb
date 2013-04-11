@@ -18,17 +18,17 @@ Puppet::Type.type(:exchange_route).provide(:qpid) do
     options[:key] = @resource[:key]
     options[:sync] = @resource[:sync]
 
-    @broker[url].add_exchange_route(@resource[:name], options)
+    @broker.add_exchange_route(@resource[:name], options)
   end
 
   def _destroy(url)
     @broker = Qpid::setBroker(url)
-    @broker[url].delete_bridge(@resource[:name])
+    @broker.delete_bridge(@resource[:name])
   end
 
   def _exists?(url)
     @broker = Qpid::setBroker(url)
-    @broker[url].bridges.each do |bridge|
+    @broker.bridges.each do |bridge|
       if @resource[:name] == bridge['name']
         return true
       end
